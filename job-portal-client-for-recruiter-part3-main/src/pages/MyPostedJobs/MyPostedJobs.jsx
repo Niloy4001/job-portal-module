@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import useAuth from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import useAxiosHook from '../../hooks/useAxiosHook';
 
 const MyPostedJobs = () => {
     const [jobs, setJobs] = useState([]);
     const { user } = useAuth();
+    const axiosSecure = useAxiosHook()
 
     useEffect(() => {
-        fetch(`http://localhost:5000/jobs?email=${user.email}`)
-            .then(res => res.json())
-            .then(data => setJobs(data))
+        // fetch(`http://localhost:5000/jobs?email=${user.email}`)
+        //     .then(res => res.json())
+        //     .then(data => setJobs(data))
+        axiosSecure.get(`/jobs?email=${user.email}`)
+        .then(res => setJobs(res.data))
     }, [user.email])
 
     return (
