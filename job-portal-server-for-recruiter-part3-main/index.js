@@ -17,6 +17,24 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+const veryfyToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if (!token) {
+    return res.status(401).send({message: 'UnAuthorized Accesss'})
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded)=>{
+    if (err) {
+        return res.status(401).send({message: 'unauthorized access'})
+    }
+    req.user = decoded
+    
+    next()
+  })
+//   console.log(token);
+//   next();
+};
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster1.hcojg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -94,8 +112,13 @@ async function run() {
 
     // job application apis
     // get all data, get one data, get some data [o, 1, many]
-    app.get("/job-application", async (req, res) => {
+    app.get("/job-application", veryfyToken, async (req, res) => {
       const email = req.query.email;
+      console.log(req.user.email, email);
+      
+      if (req.user!== email) {
+            return res.status(403).send({message: 'forbidden'})
+      }
       const query = { applicant_email: email };
       const result = await jobApplicationCollection.find(query).toArray();
 
